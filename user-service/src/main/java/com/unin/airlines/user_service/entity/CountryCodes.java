@@ -1,6 +1,5 @@
 package com.unin.airlines.user_service.entity;
 
-import lombok.Builder;
 
 public enum CountryCodes {
 

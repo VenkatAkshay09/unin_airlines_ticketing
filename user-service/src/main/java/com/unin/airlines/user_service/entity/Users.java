@@ -1,7 +1,7 @@
 package com.unin.airlines.user_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,15 +18,19 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
 public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @NotNull
-    @Size(max=3)
+    @NotBlank
+    @Size(min=3, max=50)
+    @Pattern(regexp = "^[A-Za-z ]+$", message = "Name can only contain alphabets and spaces")
     private String firstName;
+
+    @Pattern(regexp = "^[A-Za-z ]+$", message = "Name can only contain alphabets and spaces")
     private String lastName;
 
     @Enumerated(EnumType.STRING)
@@ -34,20 +38,30 @@ public class Users {
     private Roles role = Roles.USER;
 
     @Email
-    @NotNull
+    @NotBlank
+    @Column(unique = true, nullable = false)
     private String email;
 
     @Max(150)
     @Min(1)
     private Integer age;
-    @NotNull
-    @Size(max=13)
-    @Column(length = 13)
-    private String phNo;
 
+    @NotBlank
+    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
+    @Column(length = 10, nullable = false, unique = true)
+    private String phNumber;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CountryCodes countryCode;
+
+    @JsonIgnore
     private String password;
+
     @Builder.Default
-    private Boolean isfirstPwdUpdated = false;
+    private Boolean isFirstPwdUpdated = false;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

@@ -1,0 +1,69 @@
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### OS ###
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+### Logs ###
+*.log
+logs/
+
+### Spring Boot ###
+# temp logs, pid
+*.pid
+
+### Security ###
+# environment variables
+.env
+.env.*
+*.key
+*.pem
+
+### Test ###
+/bin/
+
+### Cache ###
+.cache/
+node_modules/
+
+### Zipkin / Traces ###
+zipkin-data/
+
+### Docker ###
+*.dockerfile
+*.env
+
+

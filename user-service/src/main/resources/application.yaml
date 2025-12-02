@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: User Service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/unin_airlines
+    username: root
+    password: password
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+

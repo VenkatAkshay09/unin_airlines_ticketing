@@ -6,23 +6,35 @@ import com.unin.airlines.user_service.entity.Users;
 import com.unin.airlines.user_service.exception.UserExistsException;
 import com.unin.airlines.user_service.repository.UserRepo;
 import com.unin.airlines.user_service.service.UsersService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UsersService {
 
-    @Autowired
-    private UserRepo repo;
 
-    @Autowired
-    ModelMapper modelMapper;
+    private final UserRepo repo;
+    private final ModelMapper modelMapper;
+
+//    public UserServiceImpl(UserRepo repo, ModelMapper modelMapper) {
+//        this.repo = repo;
+//        this.modelMapper = modelMapper;
+//    }
+
+    private static final String upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String lowerCase = "abcdefghijklmnopqrstuvwxyz";
+    private static final String numericCase = "1234567890";
+    private static final String specialCase = "~!@#$%^&*()_-+=.<>?";
+    private static final String allCharCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890~!@#$%^&*()_-+=.<>?";
+
 
     @Override
     public UserResponseDto createUserRecord(UserRequestDto userDto) throws UserExistsException{
@@ -41,19 +53,49 @@ public class UserServiceImpl implements UsersService {
 
             Users user = new Users();
             modelMapper.map(userDto, user);
+            user.setPassword(generatePwd());
             Users createdUserRecord = repo.save(user);
             modelMapper.map(createdUserRecord, userResponseDto);
             log.info("User created successfully with ID: {}", createdUserRecord.getUserId());
 
         }
-        catch (UserExistsException ex) {
-            log.warn("User creation blocked: {}", ex.getMessage());
-            throw ex;
-        }
+//        catch (UserExistsException ex) {
+//            log.error("User creation blocked: {}", ex.getMessage());
+//            throw ex;
+//        }
         catch(Exception ex){
-            log.error(ex.getMessage()+ userDto.getEmail() + "error occurred while creating record");
+            log.error("Error creating user for email {} : {}", userDto.getEmail(), ex.getMessage());
             throw ex;
         }
         return userResponseDto;
+    }
+
+    @Override
+    public boolean fetchRecordByEmail(String email) {
+        Optional<Users> emailRecord = repo.findByEmail(email);
+        return emailRecord.isPresent();
+    }
+
+    @Override
+    public String generatePwd() {
+        SecureRandom secureRandom = new SecureRandom();
+        int pwdLength = 8;
+        StringBuilder pwd = new StringBuilder();
+        pwd.append(upperCase.charAt(secureRandom.nextInt(upperCase.length())));
+        pwd.append(lowerCase.charAt(secureRandom.nextInt(lowerCase.length())));
+        pwd.append(specialCase.charAt(secureRandom.nextInt(specialCase.length())));
+        pwd.append(numericCase.charAt(secureRandom.nextInt(numericCase.length())));
+        while(pwd.length() < pwdLength){
+            pwd.append(allCharCase.charAt(secureRandom.nextInt(allCharCase.length())));
+        }
+        char[] shufflePwd= pwd.toString().toCharArray();
+        for(int i =0; i < pwdLength; i++){
+            int randomIndex = secureRandom.nextInt(shufflePwd.length);
+            char temp = shufflePwd[i];
+            shufflePwd[i] = shufflePwd[randomIndex];
+            shufflePwd[randomIndex] = temp;
+        }
+        String finalPwd = new String(shufflePwd);
+        return finalPwd;
     }
 }

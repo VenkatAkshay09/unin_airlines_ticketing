@@ -1,5 +1,6 @@
 package com.unin.airlines.user_service.dto;
 
+import com.unin.airlines.user_service.entity.CountryCodes;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,5 +14,5 @@ public class UserRequestDto {
     private String email;
     private Integer age;
     private String phNumber;
-    private String countryCode;
+    private CountryCodes countryCode;
 }

@@ -12,6 +12,10 @@ public interface UsersService {
 
     public UserResponseDto createUserRecord(UserRequestDto user) throws UserExistsException;
 
+    public boolean fetchRecordByEmail(String email);
+
+    public String generatePwd();
+
 //    public boolean updatePwd(Long Id, String pwd);
 //
 //    public boolean deleteUserRecord(Long id);

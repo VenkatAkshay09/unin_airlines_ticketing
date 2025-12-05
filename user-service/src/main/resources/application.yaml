@@ -17,3 +17,20 @@ spring:
         format_sql: true
         use_sql_comments: true
 
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: venkatakshay91@gmail.com
+    password: qpct bnyw engg khho
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+#  security:
+#    user:
+#      name: venkat
+#      password: "{noop}Ven@123"

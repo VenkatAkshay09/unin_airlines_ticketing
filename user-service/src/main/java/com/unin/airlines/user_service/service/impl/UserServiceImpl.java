@@ -5,11 +5,13 @@ import com.unin.airlines.user_service.dto.UserResponseDto;
 import com.unin.airlines.user_service.entity.Users;
 import com.unin.airlines.user_service.exception.UserExistsException;
 import com.unin.airlines.user_service.repository.UserRepo;
+import com.unin.airlines.user_service.service.MailService;
 import com.unin.airlines.user_service.service.UsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -23,6 +25,8 @@ public class UserServiceImpl implements UsersService {
 
     private final UserRepo repo;
     private final ModelMapper modelMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
 //    public UserServiceImpl(UserRepo repo, ModelMapper modelMapper) {
 //        this.repo = repo;
@@ -38,8 +42,8 @@ public class UserServiceImpl implements UsersService {
 
     @Override
     public UserResponseDto createUserRecord(UserRequestDto userDto) throws UserExistsException{
-        UserResponseDto userResponseDto = new UserResponseDto();
-        try{
+//        UserResponseDto userResponseDto = new UserResponseDto();
+//        try{
             log.info("Attempting to create user: {}", userDto.getEmail());
             Optional<Users> emailRecord = repo.findByEmail(userDto.getEmail());
             Optional<Users> phRecord = repo.findByPhNumber(userDto.getPhNumber());
@@ -53,21 +57,27 @@ public class UserServiceImpl implements UsersService {
 
             Users user = new Users();
             modelMapper.map(userDto, user);
-            user.setPassword(generatePwd());
+//            user.setPassword(generatePwd());
+            String rawPwd = generatePwd();
+            String hashedPwd = passwordEncoder.encode(rawPwd);
+            user.setPassword(hashedPwd);
             Users createdUserRecord = repo.save(user);
-            modelMapper.map(createdUserRecord, userResponseDto);
+            String message = String.format("Thaknyou for creating a account in Unin Airlines \n Your login password is %s \n Please update your password immediately", rawPwd);
+            mailService.sendSimpleMail(user.getEmail(),"First login credentials", message);
             log.info("User created successfully with ID: {}", createdUserRecord.getUserId());
+            return modelMapper.map(createdUserRecord, UserResponseDto.class);
 
-        }
+//        }
 //        catch (UserExistsException ex) {
 //            log.error("User creation blocked: {}", ex.getMessage());
 //            throw ex;
 //        }
-        catch(Exception ex){
-            log.error("Error creating user for email {} : {}", userDto.getEmail(), ex.getMessage());
-            throw ex;
-        }
-        return userResponseDto;
+//        catch(Exception ex){
+//            log.error("Error creating user for email {} : {}", userDto.getEmail(), ex.getMessage());
+//            return new UserResponseDto();
+////            throw ex;
+//        }
+//        return userResponseDto;
     }
 
     @Override

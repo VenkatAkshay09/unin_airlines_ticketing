@@ -34,3 +34,7 @@ spring:
 #    user:
 #      name: venkat
 #      password: "{noop}Ven@123"
+
+jwt:
+  secret: "9b5f5f4f22da24074be0d088a44a37de71f0e89bf29d78e300059295794548c1"
+  expiration: 36000000

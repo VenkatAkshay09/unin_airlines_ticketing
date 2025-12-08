@@ -1,8 +1,9 @@
 package com.unin.airlines.user_service.service.impl;
 
-import com.unin.airlines.user_service.dto.UserRequestDto;
-import com.unin.airlines.user_service.dto.UserResponseDto;
+import com.unin.airlines.user_service.config.JwtUtil;
+import com.unin.airlines.user_service.dto.*;
 import com.unin.airlines.user_service.entity.Users;
+import com.unin.airlines.user_service.exception.InvalidCredentialsException;
 import com.unin.airlines.user_service.exception.UserExistsException;
 import com.unin.airlines.user_service.repository.UserRepo;
 import com.unin.airlines.user_service.service.MailService;
@@ -27,6 +28,7 @@ public class UserServiceImpl implements UsersService {
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailService mailService;
+    private final JwtUtil jwtUtil;
 
 //    public UserServiceImpl(UserRepo repo, ModelMapper modelMapper) {
 //        this.repo = repo;
@@ -107,5 +109,47 @@ public class UserServiceImpl implements UsersService {
         }
         String finalPwd = new String(shufflePwd);
         return finalPwd;
+    }
+
+    @Override
+    public boolean updatePwd(FirstLoginRequestDto firstLoginRequestDto) throws Exception {
+        Optional<Users> user = repo.findByEmail(firstLoginRequestDto.getEmail());
+        if(user.isEmpty())
+            throw new Exception("Something went wrong, try again later");
+        boolean credMatch = passwordEncoder.matches(firstLoginRequestDto.getCurrentPwd(),user.get().getPassword());
+        if(!credMatch)
+            throw new InvalidCredentialsException("Please enter correct current password");
+        if (passwordEncoder.matches(firstLoginRequestDto.getNewPwd(), user.get().getPassword())) {
+            throw new Exception("New password cannot be same as old password");
+        }
+        user.get().setPassword(passwordEncoder.encode(firstLoginRequestDto.getNewPwd()));
+        user.get().setIsFirstPwdUpdated(true);
+        repo.save(user.get());
+        return true;
+    }
+
+    @Override
+    public LoginResponseDto validateLogin(LoginRequestDto loginRequestDto) throws InvalidCredentialsException {
+        Users user = repo.findByEmail(loginRequestDto.getEmail()).orElseThrow(()-> new InvalidCredentialsException("No Record found"));
+
+        boolean credFlag = passwordEncoder.matches(loginRequestDto.getPwd(),user.getPassword());
+        if(!credFlag)
+                throw new InvalidCredentialsException("Please enter correct password");
+        String token = jwtUtil.generateToken(user.getEmail(),
+                user.getRole().name(),
+                user.getUserId());
+        LoginResponseDto response = new LoginResponseDto();
+        response.setToken(token);
+        response.setUser(modelMapper.map(user,UserResponseDto.class));
+        response.setIsFirstPwdUpdated(user.getIsFirstPwdUpdated());
+        return response;
+    }
+
+    @Override
+    public UserResponseDto upsertUserRecord(UserResponseDto userDto) {
+        Users user = modelMapper.map(userDto,Users.class);
+        Optional<Users> savedUser = Optional.of(repo.save(user));
+        UserResponseDto dto = modelMapper.map(savedUser.get(),UserResponseDto.class);
+        return dto;
     }
 }

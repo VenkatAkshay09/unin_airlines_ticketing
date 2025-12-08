@@ -1,8 +1,7 @@
 package com.unin.airlines.user_service.controller;
 
-import com.unin.airlines.user_service.dto.UserRequestDto;
-import com.unin.airlines.user_service.dto.UserResponseDto;
-import com.unin.airlines.user_service.exception.DuplicateEmailException;
+import com.unin.airlines.user_service.dto.*;
+import com.unin.airlines.user_service.exception.InvalidCredentialsException;
 import com.unin.airlines.user_service.exception.UserExistsException;
 import com.unin.airlines.user_service.service.UsersService;
 import jakarta.validation.Valid;
@@ -10,13 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -45,4 +40,21 @@ public class UserController {
 //        }
 
     }
+
+    @PostMapping("update-password")
+    public ResponseEntity<Boolean> resetPwd(@Valid @RequestBody FirstLoginRequestDto firstLoginRequestDto) throws Exception{
+        Boolean updatedPwd = usersService.updatePwd(firstLoginRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedPwd);
+    }
+
+    @GetMapping("login")
+    public ResponseEntity<?> validateLoginCredentials(@Valid @RequestBody LoginRequestDto loginRequestDto) throws InvalidCredentialsException {
+        LoginResponseDto user = usersService.validateLogin(loginRequestDto);
+        if(!user.getIsFirstPwdUpdated()){
+            return ResponseEntity.status(HttpStatus.OK).body(user.getIsFirstPwdUpdated());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
+
+
 }

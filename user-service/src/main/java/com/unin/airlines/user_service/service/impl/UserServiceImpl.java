@@ -64,7 +64,7 @@ public class UserServiceImpl implements UsersService {
             String hashedPwd = passwordEncoder.encode(rawPwd);
             user.setPassword(hashedPwd);
             Users createdUserRecord = repo.save(user);
-            String message = String.format("Thaknyou for creating a account in Unin Airlines \n Your login password is %s \n Please update your password immediately", rawPwd);
+            String message = String.format("Thankyou for creating a account in Unin Airlines \n Your login password is %s \n Please update your password immediately", rawPwd);
             mailService.sendSimpleMail(user.getEmail(),"First login credentials", message);
             log.info("User created successfully with ID: {}", createdUserRecord.getUserId());
             return modelMapper.map(createdUserRecord, UserResponseDto.class);
@@ -130,11 +130,11 @@ public class UserServiceImpl implements UsersService {
 
     @Override
     public LoginResponseDto validateLogin(LoginRequestDto loginRequestDto) throws InvalidCredentialsException {
-        Users user = repo.findByEmail(loginRequestDto.getEmail()).orElseThrow(()-> new InvalidCredentialsException("No Record found"));
+        Users user = repo.findByEmail(loginRequestDto.getEmail()).orElseThrow(()-> new InvalidCredentialsException("No Record found-"+ loginRequestDto.getEmail() ));
 
         boolean credFlag = passwordEncoder.matches(loginRequestDto.getPwd(),user.getPassword());
         if(!credFlag)
-                throw new InvalidCredentialsException("Please enter correct password");
+                throw new InvalidCredentialsException("Please enter correct password-"+loginRequestDto.getEmail());
         String token = jwtUtil.generateToken(user.getEmail(),
                 user.getRole().name(),
                 user.getUserId());
